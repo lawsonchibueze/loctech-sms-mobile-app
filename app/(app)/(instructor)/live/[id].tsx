@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View, Text, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { LiveClassHost } from "@/components/live/LiveClassHost";
 
 interface StreamInfo {
   id: string;
@@ -15,9 +17,16 @@ interface StreamInfo {
   viewerCount: number;
 }
 
+interface LiveToken {
+  token: string;
+  roomName: string;
+  serverUrl: string;
+}
+
 export default function LiveClassHostScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const [liveToken, setLiveToken] = useState<LiveToken | null>(null);
 
   const { data: stream, isLoading, refetch } = useQuery({
     queryKey: ["stream", id],
@@ -26,14 +35,20 @@ export default function LiveClassHostScreen() {
   });
 
   const startStream = useMutation({
-    mutationFn: () => api.post(`/sms/streaming/streams/${id}/start`, {}),
-    onSuccess: () => { refetch(); },
+    mutationFn: () => api.post<LiveToken>(`/sms/streaming/streams/${id}/start`, {}),
+    onSuccess: (data) => {
+      setLiveToken(data);
+      refetch();
+    },
     onError: (error) => Alert.alert("Error", error.message),
   });
 
   const endStream = useMutation({
     mutationFn: () => api.post(`/sms/streaming/streams/${id}/end`, {}),
-    onSuccess: () => { refetch(); },
+    onSuccess: () => {
+      setLiveToken(null);
+      refetch();
+    },
     onError: (error) => Alert.alert("Error", error.message),
   });
 
@@ -63,25 +78,41 @@ export default function LiveClassHostScreen() {
         {stream?.status === "live" ? <Badge label="LIVE" variant="error" /> : null}
       </View>
 
-      <View className="flex-1 bg-black items-center justify-center">
-        {stream?.status === "live" ? (
-          <Card className="bg-gray-800 items-center">
-            <Text className="text-white text-lg font-semibold mb-2">Broadcasting</Text>
-            <Text className="text-gray-400 text-sm mb-1">{stream.viewerCount} viewers watching</Text>
-            <Text className="text-gray-500 text-xs mb-4">LiveKit host will be integrated here</Text>
-            <Button title="End Stream" variant="primary" onPress={confirmEnd} loading={endStream.isPending} />
-          </Card>
+      <View className="flex-1 bg-black">
+        {liveToken ? (
+          <>
+            <LiveClassHost
+              token={liveToken.token}
+              serverUrl={liveToken.serverUrl}
+              onDisconnected={() => setLiveToken(null)}
+            />
+            <View className="px-4 py-2">
+              <Button title="End Stream" variant="primary" onPress={confirmEnd} loading={endStream.isPending} />
+            </View>
+          </>
+        ) : stream?.status === "live" ? (
+          <View className="flex-1 items-center justify-center">
+            <Card className="bg-gray-800 items-center">
+              <Text className="text-white text-lg font-semibold mb-2">Broadcasting</Text>
+              <Text className="text-gray-400 text-sm mb-4">{stream.viewerCount} viewers watching</Text>
+              <Button title="Rejoin Stream" variant="primary" onPress={() => startStream.mutate()} loading={startStream.isPending} />
+            </Card>
+          </View>
         ) : stream?.status === "scheduled" ? (
-          <Card className="bg-gray-800 items-center">
-            <Text className="text-white text-lg font-semibold mb-2">Ready to Start</Text>
-            <Text className="text-gray-400 text-sm mb-4">Start the live class when ready</Text>
-            <Button title="Go Live" variant="primary" size="lg" onPress={() => startStream.mutate()} loading={startStream.isPending} />
-          </Card>
+          <View className="flex-1 items-center justify-center">
+            <Card className="bg-gray-800 items-center">
+              <Text className="text-white text-lg font-semibold mb-2">Ready to Start</Text>
+              <Text className="text-gray-400 text-sm mb-4">Start the live class when ready</Text>
+              <Button title="Go Live" variant="primary" size="lg" onPress={() => startStream.mutate()} loading={startStream.isPending} />
+            </Card>
+          </View>
         ) : (
-          <Card className="bg-gray-800 items-center">
-            <Text className="text-white text-lg font-semibold mb-2">Stream Ended</Text>
-            <Text className="text-gray-400 text-sm">This live class has ended</Text>
-          </Card>
+          <View className="flex-1 items-center justify-center">
+            <Card className="bg-gray-800 items-center">
+              <Text className="text-white text-lg font-semibold mb-2">Stream Ended</Text>
+              <Text className="text-gray-400 text-sm">This live class has ended</Text>
+            </Card>
+          </View>
         )}
       </View>
     </SafeAreaView>
