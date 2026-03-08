@@ -9,10 +9,19 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (data: LoginRequest) => {
-      return api.post<LoginResponse>("/sms/auth/login", data);
+      // Set the tenant ID from institute code before making the login request
+      useAuthStore.setState({ tenantId: data.instituteCode });
+      return api.post<LoginResponse>("/mobile/auth/login", {
+        email: data.email,
+        password: data.password,
+      });
     },
     onSuccess: async (data) => {
       await login(data.accessToken, data.refreshToken, data.user);
+    },
+    onError: () => {
+      // Clear tenant ID if login fails
+      useAuthStore.setState({ tenantId: null });
     },
   });
 }
@@ -23,7 +32,7 @@ export function useLogout() {
   return useMutation({
     mutationFn: async () => {
       try {
-        await api.post("/sms/auth/logout");
+        await api.post("/mobile/auth/logout");
       } catch {
         // logout locally even if server call fails
       }
@@ -38,7 +47,7 @@ export function useLogout() {
 export function useForgotPassword() {
   return useMutation({
     mutationFn: async (email: string) => {
-      return api.post("/sms/auth/forgot-password", { email });
+      return api.post("/mobile/auth/forgot-password", { email });
     },
   });
 }
