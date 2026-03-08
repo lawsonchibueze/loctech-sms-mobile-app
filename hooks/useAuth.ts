@@ -9,19 +9,10 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (data: LoginRequest) => {
-      // Set the tenant ID from institute code before making the login request
-      useAuthStore.setState({ tenantId: data.instituteCode });
-      return api.post<LoginResponse>("/mobile/auth/login", {
-        email: data.email,
-        password: data.password,
-      });
+      return api.post<LoginResponse>("/mobile/auth/login", data);
     },
     onSuccess: async (data) => {
       await login(data.accessToken, data.refreshToken, data.user);
-    },
-    onError: () => {
-      // Clear tenant ID if login fails
-      useAuthStore.setState({ tenantId: null });
     },
   });
 }

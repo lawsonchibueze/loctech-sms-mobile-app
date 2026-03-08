@@ -16,12 +16,11 @@ import { Input } from "@/components/ui/Input";
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [instituteCode, setInstituteCode] = useState("");
 
   const login = useLogin();
 
   const handleLogin = () => {
-    if (!email.trim() || !password.trim() || !instituteCode.trim()) {
+    if (!email.trim() || !password.trim()) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
@@ -30,7 +29,6 @@ export default function LoginScreen() {
       {
         email: email.trim().toLowerCase(),
         password,
-        instituteCode: instituteCode.trim(),
       },
       {
         onError: (error) => {
@@ -62,15 +60,6 @@ export default function LoginScreen() {
               Sign in to your account
             </Text>
           </View>
-
-          <Input
-            label="Institute Code"
-            placeholder="e.g. LOCTECH"
-            value={instituteCode}
-            onChangeText={setInstituteCode}
-            autoCapitalize="characters"
-            autoCorrect={false}
-          />
 
           <Input
             label="Email"
