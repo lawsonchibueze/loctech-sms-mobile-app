@@ -69,19 +69,23 @@ export function usePushNotifications() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    registerForPushNotifications().then(async (token) => {
-      if (!token) return;
+    registerForPushNotifications()
+      .then(async (token) => {
+        if (!token) return;
 
-      try {
-        await api.post("/sms/notifications/device-tokens", {
-          token,
-          platform: Platform.OS as "ios" | "android",
-          deviceId: Constants.installationId ?? "unknown",
-        });
-      } catch (error) {
-        console.error("Failed to register push token:", error);
-      }
-    });
+        try {
+          await api.post("/sms/notifications/device-tokens", {
+            token,
+            platform: Platform.OS as "ios" | "android",
+            deviceId: Constants.installationId ?? "unknown",
+          });
+        } catch (error) {
+          console.warn("Failed to register push token:", error);
+        }
+      })
+      .catch((err) => {
+        console.warn("Push notification setup skipped:", err?.message ?? err);
+      });
 
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
