@@ -127,6 +127,15 @@ export default function StaffDashboard() {
           Quick Actions
         </Text>
         <View className="gap-3 mb-8">
+          <TouchableOpacity onPress={() => router.push("/(app)/(staff)/daily-report")}>
+            <Card>
+              <Text className="text-sm font-medium text-primary-600">
+                Daily Report
+              </Text>
+              <Text className="text-xs text-gray-500">Submit your daily activity report</Text>
+            </Card>
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={() => router.push("/(app)/(staff)/attendance/my-history")}>
             <Card>
               <Text className="text-sm font-medium text-gray-900 dark:text-white">
