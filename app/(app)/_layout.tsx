@@ -34,8 +34,6 @@ const TAB_CONFIGS: Record<Role, TabConfig[]> = {
   ],
   staff: [
     { name: "(staff)", title: "Home", icon: "H" },
-    { name: "crm", title: "CRM", icon: "C" },
-    { name: "students-tab", title: "Students", icon: "S" },
     { name: "chat", title: "Chat", icon: "M" },
     { name: "profile", title: "Profile", icon: "P" },
   ],
