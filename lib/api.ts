@@ -39,6 +39,14 @@ class ApiClient {
 
     const json = await response.json();
 
+    if (response.status === 403) {
+      throw new ApiError(
+        json.error || json.message || "You do not have permission to perform this action.",
+        403,
+        json.details
+      );
+    }
+
     if (!response.ok) {
       throw new ApiError(
         json.error ?? "Request failed",
