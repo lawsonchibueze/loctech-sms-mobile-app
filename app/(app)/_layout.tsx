@@ -2,6 +2,7 @@ import { Tabs, useRouter } from "expo-router";
 import { Text, View } from "react-native";
 import { useRole } from "@/hooks/useRole";
 import { useAuthStore } from "@/lib/auth-store";
+import { useSocket } from "@/hooks/useSocket";
 import type { Role } from "@/lib/types";
 
 type TabConfig = {
@@ -75,6 +76,7 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
 export default function AppLayout() {
   const role = useRole();
   const isLoading = useAuthStore((s) => s.isLoading);
+  useSocket(); // Initialize real-time connection
 
   if (isLoading || !role) return null;
 

@@ -94,9 +94,40 @@ export function usePushNotifications() {
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        const data = response.notification.request.content.data;
-        console.log("Notification tapped:", data);
-        // TODO: Navigate based on notification data
+        const data = response.notification.request.content.data as Record<string, string>;
+        if (!data?.type) return;
+
+        const { router } = require('expo-router');
+
+        switch (data.type) {
+          case 'message':
+          case 'mention':
+            if (data.channelId) router.push(`/chat/${data.channelId}`);
+            break;
+          case 'class_reminder':
+            if (data.resourceId) router.push(`/learn/classes/${data.resourceId}`);
+            break;
+          case 'payment_due':
+            if (data.resourceId) router.push(`/payments/${data.resourceId}`);
+            break;
+          case 'grade_posted':
+            router.push('/grades');
+            break;
+          case 'certificate':
+            if (data.resourceId) router.push(`/certificates/${data.resourceId}`);
+            break;
+          case 'scholarship':
+            if (data.resourceId) router.push(`/scholarship/${data.resourceId}`);
+            break;
+          case 'assignment_due':
+            if (data.resourceId) router.push(`/learn/assignments/${data.resourceId}`);
+            break;
+          case 'call':
+            if (data.callId) router.push(`/calls/incoming?callId=${data.callId}`);
+            break;
+          default:
+            console.log('Unknown notification type:', data.type);
+        }
       });
 
     return () => {
